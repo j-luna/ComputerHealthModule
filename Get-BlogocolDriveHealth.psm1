@@ -1,3 +1,19 @@
+<#
+.SYNOPSIS
+    Determines the disk health of a given computer.
+
+.DESCRIPTION
+    Tests the health, operational status, S.M.A.R.T. status, and temperature each disk on a computer.
+
+.PARAMETER data
+    The computer name and (optional) log file path.
+
+.OUTPUTS
+    !! to-do !!
+
+.EXAMPLE
+    !! to-do !!
+#>
 function Get-BlogocolDriveHealth {
     [CmdletBinding()]
     param(
