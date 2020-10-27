@@ -46,27 +46,13 @@ function Get-BlogocolDriveHealth {
             Write-Host "Checking disk: $($disk.FriendlyName) ($($disk.MediaType.ToString())) from computer: $computername ..."
         
             $problemsfound = 0
-            $diskstatus = $disk | Get-StorageReliabilityCounter
 
             $healthstatus = $disk.HealthStatus
             $operationalstatus = $disk.OperationalStatus
-
             $smartstatus = (Get-CimInstance `
                 -ComputerName $computername `
                 -Namespace 'root\WMI' `
                 -ClassName 'MSStorageDriver_FailurePredictStatus').PredictFailure
-
-            $temp = $diskstatus.Temperature
-            $tempKelvin = 0
-            $tempCelsius = 0
-
-            if ($temp -eq 0) {
-                Write-Verbose "Cannot get temperature reading of disk $($disk.FriendlyName) on $computername from WMI. Please contact the manufacturer for more information on interfacing with the disk temperature.`n"
-            }
-            else {
-                $tempKelvin = ($temp) / 10.0
-                $tempCelsius = $tempKelvin - 273.15
-            }
 
             if ($healthstatus -ne "Healthy") {
                 $problemsfound++
@@ -83,17 +69,6 @@ function Get-BlogocolDriveHealth {
             else {
                 $operationalreport = "Passed"
             }
-
-            if ($temp -eq 0) {
-                $tempreport = "Inconclusive"
-            }
-            elseif ($temp -ge $tempmax) {
-                $problemsfound++
-                $tempreport =  "Warning -- current temp: ($tempCelsius C)"
-            }
-            else {
-                $tempreport = "Passed -- current temp: $tempCelsius C"
-            }
         
             if ($smartstatus -eq $true) {
                 $problemsfound++
@@ -106,7 +81,6 @@ function Get-BlogocolDriveHealth {
             $reportfordisk = "For disk $($disk.FriendlyName) ($($disk.MediaType.ToString())) on $computername --
             Health status check: $healthreport
             Operational status check: $operationalreport
-            Temperature check: $tempreport
             S.M.A.R.T. check: $smartreport"
 
             Write-Verbose $reportfordisk
@@ -116,7 +90,7 @@ function Get-BlogocolDriveHealth {
                 or choose the '-Verbose' parameter.`n"
             }
             else {
-                $resultfordisk = "No problems found (though status may be inconclusive -- consult the log for more information).`n"
+                $resultfordisk = "No problems found.`n"
             }
 
             $alldiskreport.Add("$reportfordisk`n$resultfordisk") | Out-Null
