@@ -3,13 +3,13 @@
     Determines the disk health of a given computer.
 
 .DESCRIPTION
-    Tests the health, operational status, S.M.A.R.T. status, and temperature each disk on a computer.
+    Tests the health, operational status, and S.M.A.R.T. status of each disk of a computer (including external drives).
 
 .PARAMETER data
-    The computer name and (optional) log file path.
+    The computer name and log file path.
 
 .OUTPUTS
-    !! to-do !!
+    String containing the full path for the logfile
 
 .EXAMPLE
     !! to-do !!
