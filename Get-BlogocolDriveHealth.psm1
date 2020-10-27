@@ -51,58 +51,60 @@ function Get-BlogocolDriveHealth {
 
         $disks = Get-PhysicalDisk
     
-        foreach ($disk in $disks) {
-            Write-Host "Checking disk: $($disk.FriendlyName) ($($disk.MediaType.ToString())) from computer: $computername ..."
-        
-            $problemsfound = 0
-
-            $healthstatus = $disk.HealthStatus
-            $operationalstatus = $disk.OperationalStatus
-            $smartstatus = (Get-CimInstance `
-                -ComputerName $computername `
-                -Namespace 'root\WMI' `
-                -ClassName 'MSStorageDriver_FailurePredictStatus').PredictFailure
-
-            if ($healthstatus -ne "Healthy") {
-                $problemsfound++
-                $healthreport = "Warning -- status: $healthstatus"
+        foreach ($computer in $computername) {
+            foreach ($disk in $disks) {
+                Write-Host "Checking disk: $($disk.FriendlyName) ($($disk.MediaType.ToString())) from computer: $computer ..."
+            
+                $problemsfound = 0
+    
+                $healthstatus = $disk.HealthStatus
+                $operationalstatus = $disk.OperationalStatus
+                $smartstatus = (Get-CimInstance `
+                    -ComputerName $computer `
+                    -Namespace 'root\WMI' `
+                    -ClassName 'MSStorageDriver_FailurePredictStatus').PredictFailure
+    
+                if ($healthstatus -ne "Healthy") {
+                    $problemsfound++
+                    $healthreport = "Warning -- status: $healthstatus"
+                }
+                else {
+                    $healthreport = "Passed"
+                }
+    
+                if ($operationalstatus -ne "OK") {
+                    $problemsfound++
+                    $operationalreport = "Warning -- status: $operationalstatus"
+                }
+                else {
+                    $operationalreport = "Passed"
+                }
+            
+                if ($smartstatus -eq $true) {
+                    $problemsfound++
+                    $smartreport = "Failed"
+                }
+                else {
+                    $smartreport = "Passed"
+                }
+    
+                $reportfordisk = "For disk $($disk.FriendlyName) ($($disk.MediaType.ToString())) on $computer --
+                Health status check: $healthreport
+                Operational status check: $operationalreport
+                S.M.A.R.T. check: $smartreport"
+    
+                Write-Verbose $reportfordisk
+    
+                if ($problemsfound -gt 0) {
+                    $resultfordisk = "$problemsfound problems detected on the disk. Refer to logs for more information
+                    or choose the '-Verbose' parameter.`n"
+                }
+                else {
+                    $resultfordisk = "No problems found.`n"
+                }
+    
+                $alldiskreport.Add("$reportfordisk`n$resultfordisk") | Out-Null
             }
-            else {
-                $healthreport = "Passed"
-            }
-
-            if ($operationalstatus -ne "OK") {
-                $problemsfound++
-                $operationalreport = "Warning -- status: $operationalstatus"
-            }
-            else {
-                $operationalreport = "Passed"
-            }
-        
-            if ($smartstatus -eq $true) {
-                $problemsfound++
-                $smartreport = "Failed"
-            }
-            else {
-                $smartreport = "Passed"
-            }
-
-            $reportfordisk = "For disk $($disk.FriendlyName) ($($disk.MediaType.ToString())) on $computername --
-            Health status check: $healthreport
-            Operational status check: $operationalreport
-            S.M.A.R.T. check: $smartreport"
-
-            Write-Verbose $reportfordisk
-
-            if ($problemsfound -gt 0) {
-                $resultfordisk = "$problemsfound problems detected on the disk. Refer to logs for more information
-                or choose the '-Verbose' parameter.`n"
-            }
-            else {
-                $resultfordisk = "No problems found.`n"
-            }
-
-            $alldiskreport.Add("$reportfordisk`n$resultfordisk") | Out-Null
         }
     }
 
