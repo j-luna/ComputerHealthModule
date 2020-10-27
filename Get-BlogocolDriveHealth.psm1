@@ -20,16 +20,21 @@ function Get-BlogocolDriveHealth {
         [Parameter(
             ValueFromPipeline=$true,
             ValueFromPipelineByPropertyName=$true,
-            Position=0)]
+            Position=0
+        )]
         [String[]]$computername='localhost',
-
-        [Parameter(
-            Position=1)]
-        [String]$logname
+        [String]$logname='.\drive_health_log.log'
     )
     
     BEGIN {
         $alldiskreport = [System.Collections.ArrayList]@()
+
+        if ( ($logname.Split('.'))[-1] -ne 'log' ) {
+            throw { 'Error: Please enter a valid log name/path (must be .log file).' }
+        }
+        else {
+            $logfile = New-Item $logname -Force
+        }
     }
 
     PROCESS {
@@ -38,7 +43,7 @@ function Get-BlogocolDriveHealth {
         $tempmax = 3220 # Corresponds to around 50C -- recommended that hard drives do not reach/go beyond this point
     
         foreach ($disk in $disks) {
-            Write-Output "Checking disk: $($disk.FriendlyName) ($($disk.MediaType.ToString())) from computer: $computername ..."
+            Write-Host "Checking disk: $($disk.FriendlyName) ($($disk.MediaType.ToString())) from computer: $computername ..."
         
             $problemsfound = 0
             $diskstatus = $disk | Get-StorageReliabilityCounter
@@ -56,7 +61,7 @@ function Get-BlogocolDriveHealth {
             $tempCelsius = 0
 
             if ($temp -eq 0) {
-                Write-Output "Cannot get temperature reading of disk from WMI. Please contact the manufacturer for more information on interfacing with the disk temperature.`n"
+                Write-Verbose "Cannot get temperature reading of disk $($disk.FriendlyName) on $computername from WMI. Please contact the manufacturer for more information on interfacing with the disk temperature.`n"
             }
             else {
                 $tempKelvin = ($temp) / 10.0
@@ -98,36 +103,38 @@ function Get-BlogocolDriveHealth {
                 $smartreport = "Passed"
             }
 
-            $reportfordisk = "For disk $($disk.FriendlyName) on $computername --
+            $reportfordisk = "For disk $($disk.FriendlyName) ($($disk.MediaType.ToString())) on $computername --
             Health status check: $healthreport
             Operational status check: $operationalreport
             Temperature check: $tempreport
-            S.M.A.R.T. check: $smartreport`n"
+            S.M.A.R.T. check: $smartreport"
 
             Write-Verbose $reportfordisk
+
             if ($problemsfound -gt 0) {
                 $resultfordisk = "$problemsfound problems detected on the disk. Refer to logs for more information
-                or choose the '-Verbose' parameter."
+                or choose the '-Verbose' parameter.`n"
             }
             else {
-                $resultfordisk = "No problems found. All tests passed."
+                $resultfordisk = "No problems found (though status may be inconclusive -- consult the log for more information).`n"
             }
-            
-            $alldiskreport.Add($resultfordisk)
+
+            $alldiskreport.Add("$reportfordisk`n$resultfordisk") | Out-Null
         }
     }
 
     END {
-        if ($logname -ne $NULL) {
+        if ($logfile -ne $NULL) {
             try { 
                 foreach ($diskreport in $alldiskreport) {
-                    $reportfordisk.toString() + "`n" + $resultfordisk.toString() | Out-File $logname -Force -Append
+                    $diskreport | Out-File $logname -Force -Append
                 }
-            }catch {
-            Write-Host "Write to log failed. Please enter a valid log path."
-            }  
+            } catch {
+                throw { "Write to log failed for a disk. Please enter a valid log path." }
+            }
         }
-
-        return $logname
+        Write-Host "Process successful.`n"
+        
+        return $logfile.FullName
     }
 }
