@@ -9,21 +9,31 @@
     The computer name and log file path.
 
 .OUTPUTS
-    String containing the full path for the logfile
+    System.String. Returns a string containing the full path for the log file.
 
 .EXAMPLE
-    !! to-do !!
+    C:\PS> Get-BlogocolDriveHealth -computername localhost
+    C:\Users\user1\drive_health_log.log
+
+.EXAMPLE
+    C:\PS> Get-BlogocolDriveHealth localhost -logname report.log
+    C:\Users\user1\report.log
+
+.EXAMPLE
+    C:\PS> Get-BlogocolDriveHealth localhost -logname C:\Users\user1\logs\my_report.log
+    C:\Users\user1\logs\my_report.log
 #>
 function Get-BlogocolDriveHealth {
     [CmdletBinding()]
     param(
         [Parameter(
+            Mandatory=$true,
             ValueFromPipeline=$true,
             ValueFromPipelineByPropertyName=$true,
             Position=0
         )]
-        [String[]]$computername='localhost',
-        [String]$logname='.\drive_health_log.log'
+        [String[]]$computername,
+        [String]$logname='drive_health_log.log'
     )
     
     BEGIN {
