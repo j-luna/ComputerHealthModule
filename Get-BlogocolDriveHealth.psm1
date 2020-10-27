@@ -40,7 +40,6 @@ function Get-BlogocolDriveHealth {
     PROCESS {
 
         $disks = Get-PhysicalDisk
-        $tempmax = 3220 # Corresponds to around 50C -- recommended that hard drives do not reach/go beyond this point
     
         foreach ($disk in $disks) {
             Write-Host "Checking disk: $($disk.FriendlyName) ($($disk.MediaType.ToString())) from computer: $computername ..."
