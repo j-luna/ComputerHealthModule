@@ -22,10 +22,7 @@ function Get-BlgDriveHealth {
         }
     }
 
-    END {
-        
-        #$problemcomputers | Out-File $logfile -Append
-        
+    END {        
         foreach ($problemcomputer in $problemcomputers) {
             Write-Output "Issues found on $($problemcomputer.ComputerName) on $($problemcomputer.DriveLetter)" | Out-File $logfile -Append -Force
             Write-Output "
@@ -36,7 +33,6 @@ function Get-BlgDriveHealth {
                 Drive health       : $($problemcomputer.VolumeHealthStatus) 
             " | Out-File $logfile -Append -Force
         }
-
         Write-Host "Problem drives written to C:\drivelogs\BlgDriveHealth"
     }
 }
