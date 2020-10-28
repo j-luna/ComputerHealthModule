@@ -24,7 +24,7 @@
 
     $report = Get-BlgDriveHealth
 #>
-function Get-BlgDriveHealth {
+function Get-BlgDriveInfo {
     [CmdletBinding()]
     param(
         [Parameter(
@@ -59,7 +59,7 @@ function Get-BlgDriveHealth {
                     FreeSpace               = $_.FreeSpace
                     VolumeSerialNumber      = $_.VolumeSerialNumber
                     VolumeOperationalStatus = ($_ | Select-Object *,@{l="DriveLetter";e={ ([char[]]$_.DeviceId)[0]} } | Get-Volume).OperationalStatus
-                    VolumeHealthyStatus     = ($_ | Select-Object *,@{l="DriveLetter";e={ ([char[]]$_.DeviceId)[0]} } | Get-Volume).HealthStatus
+                    VolumeHealthStatus     = ($_ | Select-Object *,@{l="DriveLetter";e={ ([char[]]$_.DeviceId)[0]} } | Get-Volume).HealthStatus
                 }
             }
         }
