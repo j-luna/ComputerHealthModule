@@ -6,6 +6,24 @@
 # Source: https://stackoverflow.com/questions/31088930/combine-get-disk-info-and-logicaldisk-info-in-powershell
 # -----------------------------------------------------------
 
+<#
+.SYNOPSIS
+    Retrieves disk properties for a computer.
+
+.DESCRIPTION
+    Takes the name of a computer and returns properties of the physical disks, partitions, and volumes associated with lettered drives.
+
+.PARAMETER data
+    The name of the computer.
+
+.OUTPUTS
+    A PSCustomObject containing the disk properties.
+
+.EXAMPLE
+    Retrieves disk information for all disks available to localhost.
+
+    $report = Get-BlgDriveHealth
+#>
 function Get-BlgDriveHealth {
     [CmdletBinding()]
     param(
