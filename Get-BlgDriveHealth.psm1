@@ -11,14 +11,14 @@ function Get-BlgDriveHealth {
 
     BEGIN {
         $problemcomputers = [System.Collections.ArrayList]@()
-        New-Item -Path "C:\drivelogs" -ItemType Directory -Force
+        New-Item -Path "C:\drivelogs" -ItemType Directory -Force | Out-Null
         $logfile = New-Item -Path "C:\drivelogs\BlgDriveHealth" -ItemType File -Force
     }
 
     PROCESS {
         foreach ($computer in $computers) {
             $problems = Get-BlgDriveStatus -Name $computer
-            $problemcomputers.Add($problems)
+            $problemcomputers.Add($problems) | Out-Null
         }
     }
 
