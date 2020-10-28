@@ -31,9 +31,10 @@ function Get-BlgDriveInfo {
             ValueFromPipeline=$true,
             Position=0
         )]
+        [Alias("Name")]
         [String]$computername='localhost'
     )
-        
+    
     Get-CimInstance Win32_DiskDrive | ForEach-Object {
         $disk = $_
         $partitions = "ASSOCIATORS OF " +
@@ -46,6 +47,7 @@ function Get-BlgDriveInfo {
                 "WHERE AssocClass = Win32_LogicalDiskToPartition"
             Get-CimInstance -Query $drives | ForEach-Object {
                 New-Object -Type PSCustomObject -Property @{
+                    ComputerName            = $computername
                     Disk                    = $disk.DeviceID
                     PhysicalDiskHealth      = $disk.Status
                     DiskSerialNumber        = $disk.SerialNumber
@@ -59,7 +61,7 @@ function Get-BlgDriveInfo {
                     FreeSpace               = $_.FreeSpace
                     VolumeSerialNumber      = $_.VolumeSerialNumber
                     VolumeOperationalStatus = ($_ | Select-Object *,@{l="DriveLetter";e={ ([char[]]$_.DeviceId)[0]} } | Get-Volume).OperationalStatus
-                    VolumeHealthStatus     = ($_ | Select-Object *,@{l="DriveLetter";e={ ([char[]]$_.DeviceId)[0]} } | Get-Volume).HealthStatus
+                    VolumeHealthStatus      = ($_ | Select-Object *,@{l="DriveLetter";e={ ([char[]]$_.DeviceId)[0]} } | Get-Volume).HealthStatus
                 }
             }
         }
