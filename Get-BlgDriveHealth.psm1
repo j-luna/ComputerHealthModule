@@ -13,25 +13,35 @@ function Get-BlgDriveHealth {
         $problemcomputers = [System.Collections.ArrayList]@()
         New-Item -Path "C:\drivelogs" -ItemType Directory -Force | Out-Null
         $logfile = New-Item -Path "C:\drivelogs\BlgDriveHealth" -ItemType File -Force
+
+        $problemsfound = 0
     }
 
     PROCESS {
         foreach ($computer in $computers) {
             $problems = Get-BlgDriveStatus -Name $computer
-            $problemcomputers.Add($problems) | Out-Null
+            if ($null -ne $problems) {
+                $problemcomputers.Add($problems) | Out-Null
+                $problemsfound++
+            }
         }
     }
 
-    END {        
-        foreach ($problemcomputer in $problemcomputers) {
-            Write-Output "Issues found on $($problemcomputer.ComputerName) on $($problemcomputer.DriveLetter)" | Out-File $logfile -Append -Force
-            Write-Output "
-                VolumeName         : $($problemcomputer.VolumeName)
-                FreeSpace          : $($problemcomputer.SpaceUsed)
-                S.M.A.R.T. status  : $($problemcomputer.PhysicalDiskHealth)
-                Drive status       : $($problemcomputer.VolumeOperationalStatus)
-                Drive health       : $($problemcomputer.VolumeHealthStatus) 
-            " | Out-File $logfile -Append -Force
+    END {
+        if ($problemsfound -gt 0) {        
+            foreach ($problemcomputer in $problemcomputers) {
+                Write-Output "Issues found on $($problemcomputer.ComputerName) on $($problemcomputer.DriveLetter)" | Out-File $logfile -Append -Force
+                Write-Output "
+                    VolumeName         : $($problemcomputer.VolumeName)
+                    FreeSpace          : $($problemcomputer.SpaceUsed)
+                    S.M.A.R.T. status  : $($problemcomputer.PhysicalDiskHealth)
+                    Drive status       : $($problemcomputer.VolumeOperationalStatus)
+                    Drive health       : $($problemcomputer.VolumeHealthStatus) 
+                " | Out-File $logfile -Append -Force
+            }
+        }
+        else {
+            Write-Output "No issues found for drives on $computers." | Out-File $logfile -Append -Force
         }
         Write-Host "Problem drives written to C:\drivelogs\BlgDriveHealth"
     }
@@ -55,6 +65,8 @@ function Get-BlgDriveStatus {
             $smarthealth = $_.PhysicalDiskHealth
             $opstatus    = $_.VolumeOperationalStatus
             $healthstatus = $_.VolumeHealthStatus
+            $freespace = $_.FreeSpace
+            $totalsize = $_.Size
             $availablespace = [math]::Round( ((1 - ($freespace / $totalsize) ) * 100 ),2)
 
             if (
